@@ -10,10 +10,11 @@ tensorflow_graphics
 Example Usage:
 ```python
 from pointcloud_regularizers import Random_PointSlicing, Random_Voronoi_Dropout, Random_PointRotation
-
+import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 from tensorflow import keras
+import numpy as np
 
 def get_model(numPoints):
     en_yx  =  layers.Input(shape=(numPoints,3),name='yx')
@@ -31,9 +32,9 @@ def get_model(numPoints):
 
 def sample_unit(npoints, r, ndim=3):
     # sample points inside of a unit sphere
-    vec = tf.random.normal( ( npoints, ndim ) , dtype=np.float32)
+    vec = tf.random.normal( ( npoints, ndim ) , dtype=tf.float32)
     vec /= tf.expand_dims(tf.norm(vec, axis = 1), axis=1)
-    vec *= tf.random.uniform( ( npoints, 1 ), minval=0.9, maxval=r, dtype=np.float32)
+    vec *= tf.random.uniform( ( npoints, 1 ), minval=0.5, maxval=r, dtype=tf.float32)
     return vec
 
 tf_to_slice = sample_unit(1000, 1.0, 3)
