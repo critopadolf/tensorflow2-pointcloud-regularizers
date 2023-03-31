@@ -7,6 +7,9 @@ tensorflow 2.0
 tensorflow_graphics
 ```
 
+Jupyter nbviewer of example:
+https://nbviewer.org/github/critopadolf/tensorflow2-pointcloud-regularizers/blob/main/Example.ipynb
+
 Example Usage:
 ```python
 from pointcloud_regularizers import Random_PointSlicing, Random_Voronoi_Dropout, Random_PointRotation
