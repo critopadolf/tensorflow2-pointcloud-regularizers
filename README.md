@@ -33,7 +33,7 @@ def sample_unit(npoints, r, ndim=3):
     # sample points inside of a unit sphere
     vec = tf.random.normal( ( npoints, ndim ) , dtype=np.float32)
     vec /= tf.expand_dims(tf.norm(vec, axis = 1), axis=1)
-    vec *= tf.random.uniform( ( npoints, 1 ), maxval=r, dtype=np.float32)
+    vec *= tf.random.uniform( ( npoints, 1 ), minval=0.9, maxval=r, dtype=np.float32)
     return vec
 
 tf_to_slice = sample_unit(1000, 1.0, 3)
