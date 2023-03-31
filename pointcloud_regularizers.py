@@ -40,8 +40,8 @@ class Random_PointRotation(base_layer.BaseRandomLayer):
             num_points = inp_shape[1]
             num_dims = inp_shape[2]
 
-            rotation_angles = tf.expand_dims(tf.random.uniform((batch_size,), minval=0.0, maxval=2*np.pi), axis=-1)
-            rotation_axes = tf.random.normal((batch_size, 3))
+            rotation_angles = tf.expand_dims(tf.random.uniform((batch_size,), minval=0.0, maxval=2*np.pi, dtype=inputs.dtype), axis=-1)
+            rotation_axes = tf.random.normal((batch_size, 3), dtype=inputs.dtype)
             rotation_axes = rotation_axes / tf.linalg.norm(rotation_axes, axis=-1, keepdims=True)
 
 
@@ -104,9 +104,9 @@ class Random_PointSlicing(base_layer.BaseRandomLayer):
             num_points = inp_shape[1]
             num_dims = inp_shape[2]
                
-            start_angle = tf.random.uniform(shape=(batch_size,1), minval = 0.0, maxval = 2*np.pi)
+            start_angle = tf.random.uniform(shape=(batch_size,1), minval = 0.0, maxval = 2*np.pi, dtype=inputs.dtype)
 
-            end_angle = start_angle + self.min_angle + tf.random.uniform(shape=(batch_size,1), minval = 0.0,maxval= (2*np.pi) - self.min_angle)
+            end_angle = start_angle + self.min_angle + tf.random.uniform(shape=(batch_size,1), minval = 0.0,maxval= (2*np.pi) - self.min_angle, dtype=inputs.dtype)
             # each point cloud gets the same angle
             start_angle = tf.tile(start_angle, (1, num_points) )
             end_angle = tf.tile(end_angle, (1, num_points) )
@@ -122,7 +122,7 @@ class Random_PointSlicing(base_layer.BaseRandomLayer):
             angles = tf.where(angles < start_angle, angles + 2*np.pi, angles)
 
             # Select the points that are within the range of the start and end angles
-            mask = tf.cast(((angles >= start_angle) & (angles <= end_angle)), dtype=float)
+            mask = tf.cast(((angles >= start_angle) & (angles <= end_angle)), dtype=inputs.dtype)
             mask = tf.tile(tf.expand_dims(mask, axis=-1), (1,1,num_dims) )
 
             return inputs * mask
@@ -179,11 +179,11 @@ class Random_Voronoi_Dropout(base_layer.BaseRandomLayer):
             training = backend.learning_phase()
             
         
-        def sample_unit(npoints, r, ndim=3):
+        def sample_unit(npoints, r, dtype, ndim=3):
             # sample points inside of a unit sphere
-            vec = tf.random.normal( ( npoints, ndim ) , dtype=np.float32)
+            vec = tf.random.normal( ( npoints, ndim ) , dtype=dtype)
             vec /= tf.expand_dims(tf.norm(vec, axis = 1), axis=1)
-            vec *= tf.random.uniform( ( npoints, 1 ), maxval=r, dtype=np.float32)
+            vec *= tf.random.uniform( ( npoints, 1 ), maxval=r, dtype=dtype)
             vec *= self.scales
             return vec
 
@@ -196,7 +196,7 @@ class Random_Voronoi_Dropout(base_layer.BaseRandomLayer):
             num_dims = inp_shape[2]
             
             squeeze_dim = batch_size*num_points
-            g = sample_unit(self.numGroups, self.region_radius, num_dims)
+            g = sample_unit(self.numGroups, self.region_radius, inputs.dtype, num_dims)
             p = tf.reshape(inputs,(squeeze_dim, num_dims))
 
 
@@ -210,7 +210,7 @@ class Random_Voronoi_Dropout(base_layer.BaseRandomLayer):
 
             numkeep = tf.cast(self.rate * self.numGroups, tf.int64)
 
-            tokeep = tf.cast(tf.where(dist_min >= numkeep, 1, 0), tf.float32)
+            tokeep = tf.cast(tf.where(dist_min >= numkeep, 1, 0), dtype=inputs.dtype)
 
 
             tokeep =  tf.tile(tf.expand_dims(tokeep, axis=-1), (1,num_dims)) 
